@@ -3,18 +3,59 @@
  * Validates user input against the defined JSON schema
  */
 
-const Ajv = require('ajv');
-const inputSchema = require('../schemas/inputSchema.json');
+import Ajv from 'ajv';
+import inputSchema from '../schemas/inputSchema.json';
+
+interface Skill {
+  name: string;
+  level: 'beginner' | 'intermediate' | 'advanced';
+  description?: string;
+}
+
+interface Goal {
+  subject: string;
+  specificObjective: string;
+  depth: 'basic' | 'intermediate' | 'advanced' | 'expert';
+}
+
+interface TimeConstraints {
+  totalWeeks: number;
+  hoursPerWeek: number;
+  preferredDays?: string[];
+  startDate?: string;
+}
+
+interface UserInput {
+  skills: Skill[];
+  goal: Goal;
+  timeConstraints: TimeConstraints;
+}
+
+interface ValidationError {
+  field: string;
+  message: string;
+  params?: any;
+}
+
+interface ValidationResult {
+  isValid: boolean;
+  errors: ValidationError[];
+}
+
+interface SanitizeAndValidateResult {
+  sanitizedInput: UserInput | null;
+  validation: ValidationResult;
+}
 
 const ajv = new Ajv({ allErrors: true });
 const validateSchema = ajv.compile(inputSchema);
 
 /**
  * Validates user input data against the Mentra input schema
- * @param {Object} input - The user input object to validate
- * @returns {Object} - Validation result with isValid boolean and errors array
+ * @param input - The user input object to validate
+ * @returns Validation result with isValid boolean and errors array
  */
-function validateInput(input) {
+function validateInput(input: any): ValidationResult {
   const isValid = validateSchema(input);
 
   if (isValid) {
@@ -25,9 +66,9 @@ function validateInput(input) {
   } else {
     return {
       isValid: false,
-      errors: validateSchema.errors.map(error => ({
+      errors: validateSchema.errors!.map(error => ({
         field: error.instancePath || '/',
-        message: error.message,
+        message: error.message!,
         params: error.params
       }))
     };
@@ -37,10 +78,10 @@ function validateInput(input) {
 /**
  * Sanitizes and validates input data
  * Performs basic sanitization before validation
- * @param {Object} rawInput - Raw input data from user
- * @returns {Object} - Sanitized input and validation result
+ * @param rawInput - Raw input data from user
+ * @returns Sanitized input and validation result
  */
-function sanitizeAndValidateInput(rawInput) {
+function sanitizeAndValidateInput(rawInput: any): SanitizeAndValidateResult {
   // Basic sanitization: trim strings, remove empty arrays/objects if needed
   const sanitized = JSON.parse(JSON.stringify(rawInput)); // Deep clone
 
@@ -51,7 +92,7 @@ function sanitizeAndValidateInput(rawInput) {
   }
 
   if (sanitized.skills) {
-    sanitized.skills = sanitized.skills.map(skill => ({
+    sanitized.skills = sanitized.skills.map((skill: any) => ({
       ...skill,
       name: skill.name ? skill.name.trim() : skill.name,
       description: skill.description ? skill.description.trim() : skill.description
@@ -67,7 +108,4 @@ function sanitizeAndValidateInput(rawInput) {
   };
 }
 
-module.exports = {
-  validateInput,
-  sanitizeAndValidateInput
-};
+export { validateInput, sanitizeAndValidateInput, UserInput, ValidationResult };
