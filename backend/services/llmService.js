@@ -1,0 +1,139 @@
+/**
+ * LLM Integration Service for Mentra
+ * Handles communication with OpenAI API for roadmap generation
+ */
+
+const OpenAI = require('openai');
+const { sanitizeAndValidateInput } = require('./inputValidator');
+const { validateAndProcessOutput } = require('./outputValidator');
+const SYSTEM_PROMPT = require('../prompts/systemPrompt');
+
+class LLMService {
+  constructor() {
+    this.openai = new OpenAI({
+      apiKey: process.env.OPENAI_API_KEY
+    });
+  }
+
+  /**
+   * Generates a learning roadmap using the LLM
+   * @param {Object} userInput - The user's learning request
+   * @returns {Promise<Object>} - The validated roadmap or error
+   */
+  async generateRoadmap(userInput) {
+    try {
+      // Step 1: Validate and sanitize input
+      const { sanitizedInput, validation: inputValidation } = sanitizeAndValidateInput(userInput);
+
+      if (!inputValidation.isValid) {
+        return {
+          success: false,
+          error: 'Invalid input',
+          details: inputValidation.errors
+        };
+      }
+
+      // Step 2: Prepare the user prompt
+      const userPrompt = this.buildUserPrompt(sanitizedInput);
+
+      // Step 3: Call OpenAI API
+      const completion = await this.openai.chat.completions.create({
+        model: 'gpt-4', // Using GPT-4 for better reasoning
+        messages: [
+          {
+            role: 'system',
+            content: SYSTEM_PROMPT
+          },
+          {
+            role: 'user',
+            content: userPrompt
+          }
+        ],
+        temperature: 0.3, // Lower temperature for more consistent structured output
+        max_tokens: 4000 // Sufficient for detailed roadmaps
+      });
+
+      // Step 4: Extract and parse the response
+      const responseContent = completion.choices[0].message.content;
+
+      let parsedOutput;
+      try {
+        parsedOutput = JSON.parse(responseContent);
+      } catch (parseError) {
+        return {
+          success: false,
+          error: 'Failed to parse AI response as JSON',
+          details: parseError.message,
+          rawResponse: responseContent
+        };
+      }
+
+      // Step 5: Validate the output
+      const { processedOutput, validation: outputValidation } = validateAndProcessOutput(parsedOutput);
+
+      if (!outputValidation.isValid) {
+        return {
+          success: false,
+          error: 'AI response does not match expected schema',
+          details: outputValidation.errors,
+          rawResponse: parsedOutput
+        };
+      }
+
+      // Step 6: Return the validated roadmap
+      return {
+        success: true,
+        roadmap: processedOutput.roadmap
+      };
+
+    } catch (error) {
+      console.error('LLM Service Error:', error);
+
+      if (error.response) {
+        // OpenAI API error
+        return {
+          success: false,
+          error: 'OpenAI API error',
+          details: error.response.data
+        };
+      } else {
+        // Other error
+        return {
+          success: false,
+          error: 'Unexpected error in LLM service',
+          details: error.message
+        };
+      }
+    }
+  }
+
+  /**
+   * Builds the user prompt from sanitized input
+   * @param {Object} input - Sanitized user input
+   * @returns {string} - Formatted user prompt
+   */
+  buildUserPrompt(input) {
+    const skillsText = input.skills.map(skill =>
+      `- ${skill.name} (${skill.level})${skill.description ? `: ${skill.description}` : ''}`
+    ).join('\n');
+
+    const goalText = `${input.goal.subject} - ${input.goal.specificObjective} (Depth: ${input.goal.depth})`;
+
+    const timeText = `${input.timeConstraints.totalWeeks} weeks, ${input.timeConstraints.hoursPerWeek} hours per week`;
+
+    return `Please create a personalized learning roadmap with the following details:
+
+User Skills:
+${skillsText}
+
+Learning Goal:
+${goalText}
+
+Time Constraints:
+${timeText}
+
+Please generate a comprehensive, prerequisite-aware learning roadmap that fits within these constraints.`;
+  }
+}
+
+module.exports = LLMService;
