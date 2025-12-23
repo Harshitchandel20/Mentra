@@ -3,12 +3,22 @@
  * Handles communication with OpenAI API for roadmap generation
  */
 
-const OpenAI = require('openai');
-const { sanitizeAndValidateInput } = require('./inputValidator');
-const { validateAndProcessOutput } = require('./outputValidator');
-const SYSTEM_PROMPT = require('../prompts/systemPrompt');
+import OpenAI from 'openai';
+import { sanitizeAndValidateInput, UserInput, ValidationResult } from './inputValidator';
+import { validateAndProcessOutput, RoadmapOutput } from './outputValidator';
+import SYSTEM_PROMPT from '../prompts/systemPrompt';
+
+interface RoadmapGenerationResult {
+  success: boolean;
+  roadmap?: RoadmapOutput['roadmap'];
+  error?: string;
+  details?: any;
+  rawResponse?: any;
+}
 
 class LLMService {
+  private openai: OpenAI;
+
   constructor() {
     this.openai = new OpenAI({
       apiKey: process.env.OPENAI_API_KEY
@@ -17,10 +27,10 @@ class LLMService {
 
   /**
    * Generates a learning roadmap using the LLM
-   * @param {Object} userInput - The user's learning request
-   * @returns {Promise<Object>} - The validated roadmap or error
+   * @param userInput - The user's learning request
+   * @returns The validated roadmap or error
    */
-  async generateRoadmap(userInput) {
+  async generateRoadmap(userInput: any): Promise<RoadmapGenerationResult> {
     try {
       // Step 1: Validate and sanitize input
       const { sanitizedInput, validation: inputValidation } = sanitizeAndValidateInput(userInput);
@@ -34,7 +44,7 @@ class LLMService {
       }
 
       // Step 2: Prepare the user prompt
-      const userPrompt = this.buildUserPrompt(sanitizedInput);
+      const userPrompt = this.buildUserPrompt(sanitizedInput!);
 
       // Step 3: Call OpenAI API
       const completion = await this.openai.chat.completions.create({
@@ -56,14 +66,14 @@ class LLMService {
       // Step 4: Extract and parse the response
       const responseContent = completion.choices[0].message.content;
 
-      let parsedOutput;
+      let parsedOutput: any;
       try {
-        parsedOutput = JSON.parse(responseContent);
+        parsedOutput = JSON.parse(responseContent!);
       } catch (parseError) {
         return {
           success: false,
           error: 'Failed to parse AI response as JSON',
-          details: parseError.message,
+          details: (parseError as Error).message,
           rawResponse: responseContent
         };
       }
@@ -83,25 +93,25 @@ class LLMService {
       // Step 6: Return the validated roadmap
       return {
         success: true,
-        roadmap: processedOutput.roadmap
+        roadmap: processedOutput!.roadmap
       };
 
     } catch (error) {
       console.error('LLM Service Error:', error);
 
-      if (error.response) {
+      if ((error as any).response) {
         // OpenAI API error
         return {
           success: false,
           error: 'OpenAI API error',
-          details: error.response.data
+          details: (error as any).response.data
         };
       } else {
         // Other error
         return {
           success: false,
           error: 'Unexpected error in LLM service',
-          details: error.message
+          details: (error as Error).message
         };
       }
     }
@@ -109,10 +119,10 @@ class LLMService {
 
   /**
    * Builds the user prompt from sanitized input
-   * @param {Object} input - Sanitized user input
-   * @returns {string} - Formatted user prompt
+   * @param input - Sanitized user input
+   * @returns Formatted user prompt
    */
-  buildUserPrompt(input) {
+  private buildUserPrompt(input: UserInput): string {
     const skillsText = input.skills.map(skill =>
       `- ${skill.name} (${skill.level})${skill.description ? `: ${skill.description}` : ''}`
     ).join('\n');
@@ -136,4 +146,4 @@ Please generate a comprehensive, prerequisite-aware learning roadmap that fits w
   }
 }
 
-module.exports = LLMService;
+export default LLMService;

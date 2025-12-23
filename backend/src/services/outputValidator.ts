@@ -3,8 +3,58 @@
  * Validates AI-generated roadmap output against the defined JSON schema
  */
 
-const Ajv = require('ajv');
-const outputSchema = require('../schemas/outputSchema.json');
+import Ajv from 'ajv';
+import outputSchema from '../schemas/outputSchema.json';
+
+interface Resource {
+  type: 'book' | 'course' | 'video' | 'article' | 'tutorial' | 'documentation';
+  title: string;
+  url?: string;
+}
+
+interface Topic {
+  name: string;
+  description: string;
+  estimatedHours: number;
+  prerequisites: string[];
+  resources: Resource[];
+}
+
+interface Week {
+  weekNumber: number;
+  title: string;
+  topics: Topic[];
+  weeklyGoal: string;
+  sequencingExplanation: string;
+}
+
+interface Roadmap {
+  weeks: Week[];
+  totalWeeks: number;
+  totalEstimatedHours: number;
+  overallGoal: string;
+  prerequisiteAnalysis: string;
+}
+
+interface RoadmapOutput {
+  roadmap: Roadmap;
+}
+
+interface ValidationError {
+  field: string;
+  message: string;
+  params?: any;
+}
+
+interface ValidationResult {
+  isValid: boolean;
+  errors: ValidationError[];
+}
+
+interface ProcessOutputResult {
+  processedOutput: RoadmapOutput | null;
+  validation: ValidationResult;
+}
 
 const ajv = new Ajv({
   allErrors: true,
@@ -15,10 +65,10 @@ const validateSchema = ajv.compile(outputSchema);
 
 /**
  * Validates AI-generated roadmap output against the Mentra output schema
- * @param {Object} output - The AI response object to validate
- * @returns {Object} - Validation result with isValid boolean and errors array
+ * @param output - The AI response object to validate
+ * @returns Validation result with isValid boolean and errors array
  */
-function validateOutput(output) {
+function validateOutput(output: any): ValidationResult {
   const isValid = validateSchema(output);
 
   if (isValid) {
@@ -29,9 +79,9 @@ function validateOutput(output) {
   } else {
     return {
       isValid: false,
-      errors: validateSchema.errors.map(error => ({
+      errors: validateSchema.errors!.map(error => ({
         field: error.instancePath || '/',
-        message: error.message,
+        message: error.message!,
         params: error.params
       }))
     };
@@ -41,10 +91,10 @@ function validateOutput(output) {
 /**
  * Validates and processes AI output
  * Performs additional business logic validation beyond schema
- * @param {Object} rawOutput - Raw AI response
- * @returns {Object} - Processed output and validation result
+ * @param rawOutput - Raw AI response
+ * @returns Processed output and validation result
  */
-function validateAndProcessOutput(rawOutput) {
+function validateAndProcessOutput(rawOutput: any): ProcessOutputResult {
   // First, validate against schema
   const validation = validateOutput(rawOutput);
 
@@ -57,7 +107,7 @@ function validateAndProcessOutput(rawOutput) {
 
   // Additional business logic validation
   const roadmap = rawOutput.roadmap;
-  const businessErrors = [];
+  const businessErrors: ValidationError[] = [];
 
   // Check if totalWeeks matches the number of weeks in array
   if (roadmap.weeks.length !== roadmap.totalWeeks) {
@@ -68,9 +118,9 @@ function validateAndProcessOutput(rawOutput) {
   }
 
   // Check if week numbers are sequential starting from 1
-  const weekNumbers = roadmap.weeks.map(w => w.weekNumber);
+  const weekNumbers = roadmap.weeks.map((w: Week) => w.weekNumber);
   const expectedWeekNumbers = Array.from({ length: roadmap.totalWeeks }, (_, i) => i + 1);
-  if (!weekNumbers.every((num, index) => num === expectedWeekNumbers[index])) {
+  if (!weekNumbers.every((num: number, index: number) => num === expectedWeekNumbers[index])) {
     businessErrors.push({
       field: '/roadmap/weeks',
       message: 'Week numbers are not sequential starting from 1'
@@ -78,8 +128,8 @@ function validateAndProcessOutput(rawOutput) {
   }
 
   // Calculate total estimated hours and compare
-  const calculatedTotalHours = roadmap.weeks.reduce((total, week) => {
-    return total + week.topics.reduce((weekTotal, topic) => weekTotal + topic.estimatedHours, 0);
+  const calculatedTotalHours = roadmap.weeks.reduce((total: number, week: Week) => {
+    return total + week.topics.reduce((weekTotal: number, topic: Topic) => weekTotal + topic.estimatedHours, 0);
   }, 0);
 
   if (Math.abs(calculatedTotalHours - roadmap.totalEstimatedHours) > 0.1) {
@@ -90,7 +140,7 @@ function validateAndProcessOutput(rawOutput) {
   }
 
   // Check for empty required fields
-  roadmap.weeks.forEach((week, weekIndex) => {
+  roadmap.weeks.forEach((week: Week, weekIndex: number) => {
     if (!week.title || week.title.trim().length === 0) {
       businessErrors.push({
         field: `/roadmap/weeks/${weekIndex}/title`,
@@ -111,7 +161,7 @@ function validateAndProcessOutput(rawOutput) {
     }
   });
 
-  const finalValidation = {
+  const finalValidation: ValidationResult = {
     isValid: validation.isValid && businessErrors.length === 0,
     errors: [...validation.errors, ...businessErrors]
   };
@@ -122,7 +172,4 @@ function validateAndProcessOutput(rawOutput) {
   };
 }
 
-module.exports = {
-  validateOutput,
-  validateAndProcessOutput
-};
+export { validateOutput, validateAndProcessOutput, RoadmapOutput, ValidationResult };
