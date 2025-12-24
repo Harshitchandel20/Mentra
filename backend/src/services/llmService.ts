@@ -1,9 +1,9 @@
 /**
  * LLM Integration Service for Mentra
- * Handles communication with OpenAI API for roadmap generation
+ * Handles communication with Google Gemini API for roadmap generation
  */
 
-import OpenAI from 'openai';
+import { GoogleGenerativeAI } from '@google/generative-ai';
 import { sanitizeAndValidateInput, UserInput, ValidationResult } from './inputValidator';
 import { validateAndProcessOutput, RoadmapOutput } from './outputValidator';
 import SYSTEM_PROMPT from '../prompts/systemPrompt';
@@ -17,12 +17,12 @@ interface RoadmapGenerationResult {
 }
 
 class LLMService {
-  private openai: OpenAI;
+  private genAI: GoogleGenerativeAI;
+  private model: any;
 
   constructor() {
-    this.openai = new OpenAI({
-      apiKey: process.env.OPENAI_API_KEY
-    });
+    this.genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY!);
+    this.model = this.genAI.getGenerativeModel({ model: "gemini-1.5-flash" });
   }
 
   /**
@@ -46,35 +46,23 @@ class LLMService {
       // Step 2: Prepare the user prompt
       const userPrompt = this.buildUserPrompt(sanitizedInput!);
 
-      // Step 3: Call OpenAI API
-      const completion = await this.openai.chat.completions.create({
-        model: 'gpt-4', // Using GPT-4 for better reasoning
-        messages: [
-          {
-            role: 'system',
-            content: SYSTEM_PROMPT
-          },
-          {
-            role: 'user',
-            content: userPrompt
-          }
-        ],
-        temperature: 0.3, // Lower temperature for more consistent structured output
-        max_tokens: 4000 // Sufficient for detailed roadmaps
-      });
+      // Step 3: Call Gemini API
+      const result = await this.model.generateContent(userPrompt);
+      const response = await result.response;
+      const responseText = response.text();
 
       // Step 4: Extract and parse the response
-      const responseContent = completion.choices[0].message.content;
-
       let parsedOutput: any;
       try {
-        parsedOutput = JSON.parse(responseContent!);
+        // Gemini might include markdown, so clean it
+        const cleanedText = responseText.replace(/```json\n?|\n?```/g, '').trim();
+        parsedOutput = JSON.parse(cleanedText);
       } catch (parseError) {
         return {
           success: false,
           error: 'Failed to parse AI response as JSON',
           details: (parseError as Error).message,
-          rawResponse: responseContent
+          rawResponse: responseText
         };
       }
 
@@ -99,21 +87,11 @@ class LLMService {
     } catch (error) {
       console.error('LLM Service Error:', error);
 
-      if ((error as any).response) {
-        // OpenAI API error
-        return {
-          success: false,
-          error: 'OpenAI API error',
-          details: (error as any).response.data
-        };
-      } else {
-        // Other error
-        return {
-          success: false,
-          error: 'Unexpected error in LLM service',
-          details: (error as Error).message
-        };
-      }
+      return {
+        success: false,
+        error: 'Unexpected error in LLM service',
+        details: (error as Error).message
+      };
     }
   }
 
@@ -131,7 +109,7 @@ class LLMService {
 
     const timeText = `${input.timeConstraints.totalWeeks} weeks, ${input.timeConstraints.hoursPerWeek} hours per week`;
 
-    return `Please create a personalized learning roadmap with the following details:
+    return `${SYSTEM_PROMPT}\n\nPlease create a personalized learning roadmap with the following details:
 
 User Skills:
 ${skillsText}

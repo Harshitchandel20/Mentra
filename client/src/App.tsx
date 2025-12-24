@@ -1,4 +1,5 @@
 import { useState } from 'react'
+import RoadmapTimeline from './RoadmapTimeline'
 import './App.css'
 
 interface Skill {
@@ -26,7 +27,84 @@ interface FormData {
   timeConstraints: TimeConstraints;
 }
 
+// Mock Data for Visualization
+const MOCK_ROADMAP = {
+  totalWeeks: 8,
+  totalEstimatedHours: 64,
+  overallGoal: "Master Advanced React & Ecosystem",
+  prerequisiteAnalysis: "Assumes basic JS knowledge. Structured to build complexity week by week.",
+  weeks: [
+    {
+      weekNumber: 1,
+      title: "React Fundamentals & Hooks Deep Dive",
+      weeklyGoal: "Master the core of React functional components",
+      sequencingExplanation: "Foundational knowledge required before moving to state management.",
+      topics: [
+        {
+          name: "Advanced Hooks",
+          description: "Deep dive into useReducer, useContext, and custom hooks.",
+          estimatedHours: 4,
+          prerequisites: ["Basic React"],
+          resources: [{ type: "article", title: "React Docs - Hooks", url: "https://react.dev" }]
+        },
+        {
+          name: "Performance Optimization",
+          description: "Understanding re-renders, useMemo, and useCallback.",
+          estimatedHours: 3,
+          prerequisites: ["Hooks"],
+          resources: [{ type: "video", title: "React Performance", url: "#" }]
+        }
+      ]
+    },
+    {
+      weekNumber: 2,
+      title: "State Management Architecture",
+      weeklyGoal: "scale application state effectively",
+      sequencingExplanation: "State usage grows with app complexity, natural next step.",
+      topics: [
+        {
+          name: "Redux Toolkit",
+          description: "Modern Redux with slices and thunks.",
+          estimatedHours: 5,
+          prerequisites: ["Context API"],
+          resources: [{ type: "documentation", title: "Redux Toolkit", url: "https://redux-toolkit.js.org" }]
+        },
+        {
+          name: "Zustand & Jotai",
+          description: "Exploring atomic state management alternatives.",
+          estimatedHours: 3,
+          prerequisites: ["State Basics"],
+          resources: [{ type: "article", title: "Zustand vs Redux", url: "#" }]
+        }
+      ]
+    },
+    {
+        weekNumber: 3,
+        title: "Server Side Rendering with Next.js",
+        weeklyGoal: "Understand SSR, SSG, and ISR",
+        sequencingExplanation: "Moving from client-side to full-stack framework capabilities.",
+        topics: [
+            {
+                name: "Next.js App Router",
+                description: "Routing, Layouts, and Server Components.",
+                estimatedHours: 5,
+                prerequisites: ["React"],
+                resources: [{ type: "course", title: "Next.js Learn", url: "https://nextjs.org/learn" }]
+            },
+            {
+                name: "Data Fetching",
+                description: "Server Actions and caching strategies.",
+                estimatedHours: 4,
+                prerequisites: ["Async JS"],
+                resources: [{ type: "video", title: "Next.js Data Fetching", url: "#" }]
+            }
+        ]
+    }
+  ]
+};
+
 function App() {
+  const [showRoadmap, setShowRoadmap] = useState(false);
   const [formData, setFormData] = useState<FormData>({
     skills: [{ name: '', level: 'beginner', description: '' }],
     goal: { subject: '', specificObjective: '', depth: 'intermediate' },
@@ -35,6 +113,7 @@ function App() {
 
   const handleSkillChange = (index: number, field: keyof Skill, value: string) => {
     const newSkills = [...formData.skills];
+    // @ts-ignore
     newSkills[index] = { ...newSkills[index], [field]: value };
     setFormData({ ...formData, skills: newSkills });
   };
@@ -71,8 +150,13 @@ function App() {
     e.preventDefault();
     console.log('Form Data:', formData);
     // TODO: Send to backend API
-    alert('Form submitted! Check console for data.');
+    // For demo purposes, switch to roadmap view
+    setShowRoadmap(true);
   };
+
+  if (showRoadmap) {
+    return <RoadmapTimeline roadmap={MOCK_ROADMAP} onReset={() => setShowRoadmap(false)} />;
+  }
 
   return (
     <div className="app">

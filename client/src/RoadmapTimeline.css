@@ -1,0 +1,212 @@
+.roadmap-timeline {
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 20px;
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+}
+
+.timeline-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 30px;
+}
+
+.timeline-header h2 {
+  color: #2c3e50;
+  font-size: 2.5em;
+  margin: 0;
+}
+
+.reset-btn {
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  color: white;
+  border: none;
+  padding: 12px 24px;
+  border-radius: 8px;
+  font-size: 1em;
+  cursor: pointer;
+  transition: background 0.3s ease;
+}
+
+.reset-btn:hover {
+  background: linear-gradient(135deg, #5a6fd8 0%, #6a4190 100%);
+}
+
+.roadmap-summary {
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  color: white;
+  padding: 20px;
+  border-radius: 10px;
+  margin-bottom: 30px;
+  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+}
+
+.roadmap-summary p {
+  margin: 10px 0;
+  font-size: 1.1em;
+}
+
+.weeks-container {
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+}
+
+.week-card {
+  background: white;
+  border-radius: 12px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+  overflow: hidden;
+  transition: box-shadow 0.3s ease;
+}
+
+.week-card:hover {
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.15);
+}
+
+.week-header {
+  background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
+  color: white;
+  padding: 20px;
+  cursor: pointer;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  transition: background 0.3s ease;
+}
+
+.week-header:hover {
+  background: linear-gradient(135deg, #e887f0 0%, #e54c63 100%);
+}
+
+.week-header h3 {
+  margin: 0;
+  font-size: 1.4em;
+}
+
+.expand-icon {
+  font-size: 1.2em;
+  font-weight: bold;
+  transition: transform 0.3s ease;
+}
+
+.week-details {
+  padding: 20px;
+  background: #f8f9fa;
+}
+
+.weekly-goal,
+.sequencing-explanation {
+  margin-bottom: 20px;
+}
+
+.weekly-goal h4,
+.sequencing-explanation h4 {
+  color: #495057;
+  margin-bottom: 10px;
+  font-size: 1.1em;
+}
+
+.weekly-goal p,
+.sequencing-explanation p {
+  color: #6c757d;
+  line-height: 1.6;
+}
+
+.topics-list h4 {
+  color: #495057;
+  margin-bottom: 15px;
+  font-size: 1.1em;
+}
+
+.topic-item {
+  background: white;
+  padding: 15px;
+  margin-bottom: 15px;
+  border-radius: 8px;
+  border-left: 4px solid #667eea;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+}
+
+.topic-item h5 {
+  color: #2c3e50;
+  margin: 0 0 10px 0;
+  font-size: 1.2em;
+}
+
+.topic-item p {
+  color: #6c757d;
+  margin: 5px 0;
+  line-height: 1.5;
+}
+
+.prerequisites,
+.resources {
+  margin-top: 10px;
+}
+
+.prerequisites strong,
+.resources strong {
+  color: #495057;
+}
+
+.prerequisites ul,
+.resources ul {
+  margin: 5px 0 0 20px;
+  padding: 0;
+}
+
+.prerequisites li,
+.resources li {
+  color: #6c757d;
+  margin-bottom: 5px;
+}
+
+.resource-type {
+  font-weight: bold;
+  color: #667eea;
+  margin-right: 5px;
+}
+
+.prerequisites li::marker,
+.resources li::marker {
+  color: #667eea;
+}
+
+.resources a {
+  color: #667eea;
+  text-decoration: none;
+}
+
+.resources a:hover {
+  text-decoration: underline;
+}
+
+@media (max-width: 768px) {
+  .roadmap-timeline {
+    padding: 10px;
+  }
+
+  .timeline-header {
+    flex-direction: column;
+    gap: 15px;
+    text-align: center;
+  }
+
+  .timeline-header h2 {
+    font-size: 2em;
+  }
+
+  .week-header {
+    padding: 15px;
+  }
+
+  .week-header h3 {
+    font-size: 1.2em;
+  }
+
+  .week-details {
+    padding: 15px;
+  }
+}

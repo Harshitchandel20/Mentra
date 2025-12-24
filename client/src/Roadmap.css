@@ -1,0 +1,234 @@
+/* Roadmap Container */
+.roadmap-container {
+    width: 100%;
+    max-width: 900px;
+    margin: 0 auto;
+    padding: 2rem;
+    color: var(--text-main);
+}
+
+.roadmap-header {
+    text-align: center;
+    margin-bottom: 3rem;
+    animation: fadeIn 0.8s ease-out;
+}
+
+.stats-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+    gap: 1.5rem;
+    margin-top: 2rem;
+}
+
+.stat-card {
+    background: var(--glass-bg);
+    border: 1px solid var(--glass-border);
+    box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+    backdrop-filter: blur(12px);
+    padding: 1.5rem;
+    border-radius: 16px;
+    text-align: center;
+    transition: transform 0.3s ease;
+}
+
+.stat-card:hover {
+    transform: translateY(-5px);
+    border-color: var(--primary);
+}
+
+.stat-card h3 {
+    font-size: 0.9rem;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    color: var(--text-muted);
+    margin: 0 0 0.5rem 0;
+}
+
+.stat-card p {
+    font-size: 1.8rem;
+    font-weight: 700;
+    margin: 0;
+    color: var(--secondary);
+}
+
+/* Timeline */
+.weeks-list {
+    position: relative;
+    display: flex;
+    flex-direction: column;
+    gap: 2rem;
+    padding-left: 2rem;
+    margin-top: 3rem;
+}
+
+/* Connector Line */
+.weeks-list::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    bottom: 0;
+    left: 17px;
+    /* Center of the circle */
+    width: 2px;
+    background: linear-gradient(to bottom, var(--primary), var(--secondary));
+    opacity: 0.3;
+}
+
+/* Week Card */
+.week-card {
+    position: relative;
+    background: var(--bg-card);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    padding: 1.5rem;
+    cursor: pointer;
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    overflow: hidden;
+}
+
+.week-card:hover {
+    border-color: var(--primary);
+    box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1);
+}
+
+.week-number-badge {
+    position: absolute;
+    left: -43px;
+    /* Align with timeline */
+    top: 1.5rem;
+    width: 36px;
+    height: 36px;
+    background: var(--bg-dark);
+    border: 2px solid var(--primary);
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-weight: bold;
+    color: var(--primary);
+    z-index: 2;
+    box-shadow: 0 0 0 4px var(--bg-dark);
+    /* Spacing from line */
+}
+
+.week-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.week-title h3 {
+    margin: 0;
+    font-size: 1.25rem;
+}
+
+.week-summary {
+    color: var(--text-muted);
+    margin-top: 0.5rem;
+    font-size: 0.95rem;
+}
+
+.expand-icon {
+    font-size: 1.5rem;
+    color: var(--text-muted);
+    transition: transform 0.3s ease;
+}
+
+.week-card.expanded .expand-icon {
+    transform: rotate(180deg);
+}
+
+/* Expanded Content */
+.week-details {
+    max-height: 0;
+    opacity: 0;
+    overflow: hidden;
+    transition: all 0.4s ease;
+}
+
+.week-card.expanded .week-details {
+    max-height: 2000px;
+    /* Arbitrary large number for animation */
+    opacity: 1;
+    margin-top: 1.5rem;
+    border-top: 1px solid var(--border);
+    padding-top: 1.5rem;
+}
+
+.topics-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+    gap: 1rem;
+    margin-top: 1rem;
+}
+
+.topic-card {
+    background: rgba(255, 255, 255, 0.03);
+    border-radius: 8px;
+    padding: 1rem;
+    border: 1px solid transparent;
+}
+
+.topic-card:hover {
+    border-color: var(--border);
+    background: rgba(255, 255, 255, 0.05);
+}
+
+.topic-card h4 {
+    margin: 0 0 0.5rem 0;
+    color: var(--secondary);
+}
+
+.topic-meta {
+    font-size: 0.85rem;
+    color: var(--text-muted);
+    display: flex;
+    gap: 1rem;
+    margin-bottom: 0.5rem;
+}
+
+.resources-list {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.5rem;
+    margin-top: 0.8rem;
+}
+
+.resource-tag {
+    background: rgba(139, 92, 246, 0.1);
+    color: var(--primary);
+    padding: 0.2rem 0.6rem;
+    border-radius: 4px;
+    font-size: 0.75rem;
+    text-decoration: none;
+    border: 1px solid rgba(139, 92, 246, 0.2);
+    transition: background 0.2s;
+}
+
+.resource-tag:hover {
+    background: rgba(139, 92, 246, 0.2);
+}
+
+.why-section {
+    background: rgba(6, 182, 212, 0.1);
+    border-left: 3px solid var(--secondary);
+    padding: 1rem;
+    margin-top: 1.5rem;
+    border-radius: 0 8px 8px 0;
+    font-style: italic;
+    font-size: 0.9rem;
+    color: var(--text-muted);
+}
+
+/* Animations */
+@keyframes fadeIn {
+    from {
+        opacity: 0;
+        transform: translateY(20px);
+    }
+
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}

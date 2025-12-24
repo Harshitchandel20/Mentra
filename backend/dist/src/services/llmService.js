@@ -1,21 +1,20 @@
 "use strict";
 /**
  * LLM Integration Service for Mentra
- * Handles communication with OpenAI API for roadmap generation
+ * Handles communication with Google Gemini API for roadmap generation
  */
 var __importDefault = (this && this.__importDefault) || function (mod) {
     return (mod && mod.__esModule) ? mod : { "default": mod };
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-const openai_1 = __importDefault(require("openai"));
+const generative_ai_1 = require("@google/generative-ai");
 const inputValidator_1 = require("./inputValidator");
 const outputValidator_1 = require("./outputValidator");
 const systemPrompt_1 = __importDefault(require("../prompts/systemPrompt"));
 class LLMService {
     constructor() {
-        this.openai = new openai_1.default({
-            apiKey: process.env.OPENAI_API_KEY
-        });
+        this.genAI = new generative_ai_1.GoogleGenerativeAI(process.env.GEMINI_API_KEY);
+        this.model = this.genAI.getGenerativeModel({ model: "gemini-1.5-flash" });
     }
     /**
      * Generates a learning roadmap using the LLM
@@ -35,34 +34,23 @@ class LLMService {
             }
             // Step 2: Prepare the user prompt
             const userPrompt = this.buildUserPrompt(sanitizedInput);
-            // Step 3: Call OpenAI API
-            const completion = await this.openai.chat.completions.create({
-                model: 'gpt-4', // Using GPT-4 for better reasoning
-                messages: [
-                    {
-                        role: 'system',
-                        content: systemPrompt_1.default
-                    },
-                    {
-                        role: 'user',
-                        content: userPrompt
-                    }
-                ],
-                temperature: 0.3, // Lower temperature for more consistent structured output
-                max_tokens: 4000 // Sufficient for detailed roadmaps
-            });
+            // Step 3: Call Gemini API
+            const result = await this.model.generateContent(userPrompt);
+            const response = await result.response;
+            const responseText = response.text();
             // Step 4: Extract and parse the response
-            const responseContent = completion.choices[0].message.content;
             let parsedOutput;
             try {
-                parsedOutput = JSON.parse(responseContent);
+                // Gemini might include markdown, so clean it
+                const cleanedText = responseText.replace(/```json\n?|\n?```/g, '').trim();
+                parsedOutput = JSON.parse(cleanedText);
             }
             catch (parseError) {
                 return {
                     success: false,
                     error: 'Failed to parse AI response as JSON',
                     details: parseError.message,
-                    rawResponse: responseContent
+                    rawResponse: responseText
                 };
             }
             // Step 5: Validate the output
@@ -83,22 +71,11 @@ class LLMService {
         }
         catch (error) {
             console.error('LLM Service Error:', error);
-            if (error.response) {
-                // OpenAI API error
-                return {
-                    success: false,
-                    error: 'OpenAI API error',
-                    details: error.response.data
-                };
-            }
-            else {
-                // Other error
-                return {
-                    success: false,
-                    error: 'Unexpected error in LLM service',
-                    details: error.message
-                };
-            }
+            return {
+                success: false,
+                error: 'Unexpected error in LLM service',
+                details: error.message
+            };
         }
     }
     /**
@@ -110,7 +87,7 @@ class LLMService {
         const skillsText = input.skills.map(skill => `- ${skill.name} (${skill.level})${skill.description ? `: ${skill.description}` : ''}`).join('\n');
         const goalText = `${input.goal.subject} - ${input.goal.specificObjective} (Depth: ${input.goal.depth})`;
         const timeText = `${input.timeConstraints.totalWeeks} weeks, ${input.timeConstraints.hoursPerWeek} hours per week`;
-        return `Please create a personalized learning roadmap with the following details:
+        return `${systemPrompt_1.default}\n\nPlease create a personalized learning roadmap with the following details:
 
 User Skills:
 ${skillsText}

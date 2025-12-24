@@ -1,6 +1,6 @@
 /**
  * LLM Integration Service for Mentra
- * Handles communication with OpenAI API for roadmap generation
+ * Handles communication with Google Gemini API for roadmap generation
  */
 import { RoadmapOutput } from './outputValidator';
 interface RoadmapGenerationResult {
@@ -11,7 +11,8 @@ interface RoadmapGenerationResult {
     rawResponse?: any;
 }
 declare class LLMService {
-    private openai;
+    private genAI;
+    private model;
     constructor();
     /**
      * Generates a learning roadmap using the LLM
