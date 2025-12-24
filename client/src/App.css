@@ -1,0 +1,116 @@
+.app {
+  max-width: 800px;
+  margin: 0 auto;
+  padding: 2rem;
+}
+
+header {
+  text-align: center;
+  margin-bottom: 2rem;
+}
+
+h1 {
+  color: #646cff;
+  margin-bottom: 0.5rem;
+}
+
+.onboarding-form {
+  display: flex;
+  flex-direction: column;
+  gap: 2rem;
+}
+
+section {
+  border: 1px solid #ccc;
+  padding: 1.5rem;
+  border-radius: 8px;
+  background: rgba(255, 255, 255, 0.05);
+}
+
+h2, h3 {
+  margin-top: 0;
+  color: #646cff;
+}
+
+.skill-item {
+  display: flex;
+  gap: 0.5rem;
+  margin-bottom: 1rem;
+  align-items: center;
+}
+
+.skill-item input, .skill-item select {
+  flex: 1;
+}
+
+.skill-item input[type="text"]:first-child {
+  flex: 2;
+}
+
+input, select, textarea {
+  padding: 0.5rem;
+  border: 1px solid #ccc;
+  border-radius: 4px;
+  background: white;
+  color: black;
+}
+
+textarea {
+  min-height: 80px;
+  resize: vertical;
+}
+
+.days-selection {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 1rem;
+  margin: 1rem 0;
+}
+
+.days-selection label {
+  display: flex;
+  align-items: center;
+  gap: 0.25rem;
+}
+
+.submit-btn {
+  padding: 1rem 2rem;
+  background: #646cff;
+  color: white;
+  border: none;
+  border-radius: 8px;
+  font-size: 1.1rem;
+  cursor: pointer;
+  align-self: center;
+}
+
+.submit-btn:hover {
+  background: #535bf2;
+}
+
+button[type="button"] {
+  background: #dc3545;
+  color: white;
+  border: none;
+  padding: 0.25rem 0.5rem;
+  border-radius: 4px;
+  cursor: pointer;
+}
+
+button[type="button"]:hover {
+  background: #c82333;
+}
+
+label {
+  display: block;
+  margin-bottom: 0.5rem;
+  font-weight: 500;
+}
+
+input[type="number"] {
+  width: 100px;
+}
+
+input[type="date"] {
+  width: auto;
+}
